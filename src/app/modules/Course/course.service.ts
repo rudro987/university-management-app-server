@@ -13,7 +13,8 @@ const createCourseIntoDB = async (payload: TCourse) => {
 
 const getAllCoursesFromDB = async (query: Record<string, unknown>) => {
   const courseQuery = new QueryBuilder(
-    Course.find().populate('preRequisiteCourses.course'),
+    Course.find(),
+    // .populate('preRequisiteCourses.course'),
     query,
   )
     .search(CourseSearchableFields)
@@ -23,12 +24,7 @@ const getAllCoursesFromDB = async (query: Record<string, unknown>) => {
     .fields();
 
   const result = await courseQuery.modelQuery;
-  const meta = await courseQuery.countTotal();
-
-  return {
-    meta,
-    result,
-  };
+  return result;
 };
 
 const getSingleCourseFromDB = async (id: string) => {
@@ -117,6 +113,7 @@ const updateCourseIntoDB = async (id: string, payload: Partial<TCourse>) => {
 
     return result;
   } catch (err) {
+    console.log(err);
     await session.abortTransaction();
     await session.endSession();
     throw new AppError(httpStatus.BAD_REQUEST, 'Failed to update course');
@@ -152,13 +149,6 @@ const assignFacultiesWithCourseIntoDB = async (
   return result;
 };
 
-const getFacultiesWithCourseFromDB = async (courseId: string) => {
-  const result = await CourseFaculty.findOne({ course: courseId }).populate(
-    'faculties',
-  );
-  return result;
-};
-
 const removeFacultiesFromCourseFromDB = async (
   id: string,
   payload: Partial<TCoursefaculty>,
@@ -182,6 +172,5 @@ export const CourseServices = {
   updateCourseIntoDB,
   deleteCourseFromDB,
   assignFacultiesWithCourseIntoDB,
-  getFacultiesWithCourseFromDB,
   removeFacultiesFromCourseFromDB,
 };
