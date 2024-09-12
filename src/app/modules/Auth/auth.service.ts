@@ -5,6 +5,7 @@ import { TLoginUser } from "./auth.interface";
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import config from "../../config";
 import bcrypt from 'bcrypt';
+import { createToken } from "./auth.utils";
 
 const loginUser = async (payload: TLoginUser) => {
     //checking if the user already exists!
@@ -46,11 +47,14 @@ const loginUser = async (payload: TLoginUser) => {
         role: user?.role
     }
 
-    const accessToken = jwt.sign(jwtPayload, config.jwt_access_secret as string, { expiresIn: '10d' });
+    const accessToken = createToken(jwtPayload, config.jwt_access_secret as string, config.jwt_access_expires_in);
+
+    const refreshToken = createToken(jwtPayload, config.jwt_refresh_secret as string, config.jwt_refresh_expires_in);
 
     return {
         accessToken,
-        needsPasswordChange: user.needsPasswordChange
+        refreshToken,
+        needsPasswordChange: user?.needsPasswordChange
     };
     
 };
@@ -97,7 +101,7 @@ const changePassword = async (userData: JwtPayload, payload: { oldPassword: stri
     }, {
         password: newHashedPassword,
         needsPasswordChange: false,
-        passWordChangedAt: new Date()
+        passwordChangedAt: new Date()
     });
 
     return null
